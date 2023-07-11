@@ -1,1 +1,0 @@
-const xyz=require('./people');
