@@ -1,13 +1,16 @@
 const express = require('express');
 const morgan=require('morgan');
 const mongoose=require('mongoose');
-const Blog=require('./models/blog');
+
+const blogRoutes=require('./routes/blogRoutes')
+const { result } = require('lodash');
+const { render } = require('ejs');
 // express app
 const app = express();
 
 // connect to mongoDB
 const dbURI = 'mongodb+srv://netninja:test1234@cluster0.wseih1d.mongodb.net/node-tuts?retryWrites=true&w=majority';
-mongoose.connect(dbURI)
+mongoose.connect(dbURI,{useNewUrlParser: true, useUnifiedTopology: true})
 .then((result)=>app.listen(3000))
 .catch((err)=>console.log(err))
 // register view engine
@@ -26,6 +29,7 @@ mongoose.connect(dbURI)
 
 // middleware & static files
 app.use(express.static('public')); 
+app.use(express.urlencoded({extended:true}));
 app.use(morgan('dev'));
 
 // mongoose and mongo sandbox routes
@@ -92,26 +96,14 @@ app.get('/about', (req, res) => {
 
 });
 
-// blog routes
-app.get('/blogs',(req,res)=>{
-    Blog.find().sort({createdAt:-1})
-    .then((result)=>{
-        res.render('index',{title:'All Blogs',blogs:result})
-    })
-    .catch((err) =>{
-        console.log(err);
-    })
-})
-
-
-app.get('/blogs/create', (req,res) =>{
-    res.render('create', {title:'Create a new blog'});
-})
 
 // redirects
 app.get('/about-us', (req, res)=>{
     res.redirect('/about');
 })
+
+// blog routes
+app.use('/blogs',blogRoutes)
 
 // 404 page
 app.use((req, res)=>{
